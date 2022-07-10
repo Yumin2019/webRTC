@@ -1,0 +1,28 @@
+.dropdown-menu {
+  margin: 4rem auto;
+}
+
+.btn-hover-light {
+  background-color: var(--bs-white);
+}
+.btn-hover-light:hover,
+.btn-hover-light:focus {
+  color: var(--bs-red);
+  background-color: var(--bs-light);
+}
+
+.w-220px {
+  width: 220px;
+}
+
+.w-280px {
+  width: 280px;
+}
+
+.w-340px {
+  width: 340px;
+}
+
+.w-600px {
+  width: 600px;
+}
