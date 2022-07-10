@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WebRTC Project</title>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
- <!-- Bootstrap CSS -->
- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
- integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 
 
   <style>
@@ -18,6 +18,14 @@
       height: calc(100% - 52px);
       width: calc(100% - 72px);
       background-color: rgb(60, 60, 60);
+      position: absolute;
+    }
+
+    .main_view_drawing_mode {
+      top: 52px;
+      left: 72px;
+      height: calc(100% - 52px);
+      width: calc(100% - 72px);
       position: absolute;
     }
 
@@ -42,13 +50,9 @@
       padding-top: 4px;
     }
 
-
-
-
-
     /* The sidebar menu */
     .sidebar {
-      height: 100%;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25), 0 2px 2px rgba(0, 0, 0, 0.2), 0 4px 4px rgba(0, 0, 0, 0.15), 0 8px 8px rgba(0, 0, 0, 0.1), 0 16px 16px rgba(0, 0, 0, 0.05);
       /* 100% Full-height */
       width: 350px;
       /* 0 width - change this with JavaScript */
@@ -68,34 +72,6 @@
       /* 0.5 second transition effect to slide in the sidebar */
     }
 
-    /* The sidebar links */
-    .sidebar a {
-      text-decoration: none;
-      color: #000000;
-      display: block;
-      transition: 0.3s;
-    }
-
-
-    /* Position and style the close button (top right corner) */
-    .sidebar .closebtn {
-      position: absolute;
-      top: 0px;
-      right: 5px;
-      font-size: 52px;
-    }
-
-    /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
-    @media screen and (max-height: 450px) {
-      .sidebar {
-        padding-top: 15px;
-      }
-
-      .sidebar a {
-        font-size: 18px;
-      }
-    }
-
     /* Style the sidebar - fixed full height */
     .leftToolbar {
       height: 100%;
@@ -104,7 +80,7 @@
       z-index: 1;
       top: 0;
       left: 0;
-      background-color: rgb(12, 180, 152);
+      background-color: rgb(16, 209, 177);
       text-align: center;
     }
 
@@ -115,7 +91,6 @@
     }
 
     .leftToolbar li:hover {
-      padding: 12px;
       display: inline-block;
       background-color: #e6e3e0ce;
       transition: all 0.3s ease;
@@ -127,7 +102,85 @@
       /* Add an active/current color */
     }
 
+    /* left Toolbar Plus */
+    .leftToolbarPlus {
+      border-radius: 5px;
+      border: 3px solid rgb(0, 0, 0);
+      width: 55px;
+      height: 90%;
+      position: relative;
+      z-index: 1;
+      top: 0;
+      left: 0;
+      margin-top: 16px;
+      margin-left: 2px;
+      background-color: rgb(16, 209, 177);
+      text-align: center;
+    }
 
+    .leftToolbarPlus li {
+      width: 50px;
+      height: 50px;
+      padding: 12px;
+      display: block;
+    }
+
+    .leftToolbarPlus li:hover:not(.leftToolbarPlus li ul li) {
+      padding: 12px;
+      background-color: #e6e3e0ce;
+      transition: all 0.3s ease;
+      /* Add transition for hover effects */
+    }
+
+    .active {
+      background-color: #e6e3e0;
+      /* Add an active/current color */
+    }
+
+    .leftToolbarPlus li ul li div img {
+      position: relative;
+      left: -12px;
+      top: -12px;
+      width: 50px;
+      height: 50px;
+      padding: 12px;
+    }
+
+    .leftToolbarPlus li ul li div img:hover {
+      background-color: #e6e3e0ce;
+      transition: all 0.3s ease;
+    }
+    .active {
+      background-color: #e6e3e0;
+      /* Add an active/current color */
+    }
+
+    .leftToolbarPlus li ul li {
+      position: relative;
+      display: none;
+      text-align: center;
+      width: 200px;
+      top: -38px;
+      left: 6px;
+      background-color: rgb(16, 209, 177);
+    }
+    /* .leftToolbarPlus li ul li:hover {
+      background-color: #e6e3e0ce;
+      transition: all 0.3s ease;
+    } */
+
+    .leftToolbarPlus .dropdown {
+      position: relative;
+    }
+
+    .leftToolbarPlus .dropdown:hover ul li {
+      display: block;
+    }
+
+    .active {
+      background-color: #e6e3e0;
+      /* Add an active/current color */
+    }
 
     #chatWrap {
       width: 350px;
@@ -161,7 +214,7 @@
     }
 
     .myMsg>.msg {
-      background-color: rgb(12, 180, 152);
+      background-color: rgb(16, 209, 177);
       color: #fff;
     }
 
@@ -193,93 +246,104 @@
       padding-bottom: 0;
     }
 
-       /* 햄버거 메뉴 */
-   input[id="menuicon"] {
-    display: none;
-}
+    /* 햄버거 메뉴 */
+    input[id="menuicon"] {
+      display: none;
+    }
 
-input[id="menuicon"] + label {
-    display: block;
-    width: 20px;
-    height: 20px;
-    right: 0;
-    top: 0;
-    margin-top: 10px;
-    margin-right: 42px;
-    position: absolute;
-    cursor: pointer;
-}
+    input[id="menuicon"]+label {
+      display: block;
+      width: 20px;
+      height: 20px;
+      right: 0;
+      top: 0;
+      margin-top: 10px;
+      margin-right: 42px;
+      position: absolute;
+      cursor: pointer;
+    }
 
-input[id="menuicon"] + label span {
-    display: block;
-    position: absolute;
-    width: 100%;
-    height: 5px;
-    border-radius: 30px;
-    background:#000;
-    transition:all .35s;
-}
+    input[id="menuicon"]+label span {
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 5px;
+      border-radius: 30px;
+      background: #000;
+      transition: all .35s;
+    }
 
-input[id="menuicon"]:checked + label {z-index:3;}
+    input[id="menuicon"]:checked+label {
+      z-index: 3;
+    }
 
-/* 드로우어(서랍) 메뉴 */
-div[class="sidebar"] {
-    width: 370px;
-    overflow-y: scroll; 
-    height: fit-content;
-    max-height: 100%;
-    background:rgb(150, 148, 148);
-    position: fixed;
-    top: 0;
-    right: -370px;
-    z-index: 2;
-    transition: all .35s;
-}
-input[id="menuicon"]:checked + label + div {
-    right: 0px;
-}
+    /* 드로우어(서랍) 메뉴 */
+    div[class="sidebar"] {
+      width: 370px;
+      overflow-y: scroll;
+      height: fit-content;
+      max-height: 100%;
+      background: rgb(180, 180, 180);
+      position: fixed;
+      top: 0;
+      right: -370px;
+      z-index: 2;
+      transition: all .35s;
+    }
 
-/* 사이드 메뉴  */
+    input[id="menuicon"]:checked+label+div {
+      right: 0px;
+    }
 
-.menu {
-    margin-left: 16px;
-    margin-right: 50px;
-    margin-top: 16px;
-    margin-bottom:16px;
-}
-.msger-inputarea {
-  background: rgb(150, 148, 148);
-  width: 100%;
-  left: 0;
-  bottom: 0;
-  position: relative;
-}
-.msger-inputarea * {
-  padding: 10px;
-  border: none;
-  border-radius: 3px;
-  font-size: 1em;
-}
-.msger-input {
-  background: white;
-  outline: none;
-}
-.msger-send-btn {
-  margin-left: 10px;
-  background: rgb(12, 180, 152);
-  color: #fff;
-  font-weight: bold;
-  outline: none;
-}
-.msger-send-btn:focus {
-  outline-width: 0;
-}
-.msger-send-btn:hover {
-  background: rgb(10, 148, 125);
-  outline: none;
-}
+    /* 사이드 메뉴  */
 
+    .chat-menu {
+      margin-left: 16px;
+      margin-right: 50px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+
+    .msger-inputarea {
+      background: rgb(180, 180, 180);
+      width: 100%;
+      left: 0;
+      bottom: 0;
+      position: relative;
+    }
+
+    .msger-inputarea * {
+      padding: 10px;
+      border: none;
+      border-radius: 3px;
+      font-size: 1em;
+    }
+
+    .msger-input {
+      background: white;
+      outline: none;
+    }
+
+    .msger-send-btn {
+      margin-left: 10px;
+      background: rgb(16, 209, 177);
+      color: #fff;
+      font-weight: bold;
+      outline: none;
+    }
+
+    .msger-send-btn:focus {
+      outline-width: 0;
+    }
+
+    .msger-send-btn:hover {
+      background: rgb(10, 148, 125);
+      outline: none;
+    }
   </style>
+
+  <!-- custom dropdowns -->
+  <link href="assets/css/dropdowns.css" rel="stylesheet">
 
 </head>
 
@@ -288,7 +352,7 @@ input[id="menuicon"]:checked + label + div {
   <main>
 
 
-    
+
 
     <script>
 
@@ -296,6 +360,9 @@ input[id="menuicon"]:checked + label + div {
 
     <!-- Load an icon library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- <link rel="stylesheet" href="assets/css/shadow.css"> 직접 추가해서 쓰고 있음-->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+
 
     <!-- The sidebar -->
     <div id="leftToolbar" class="leftToolbar">
@@ -315,11 +382,21 @@ input[id="menuicon"]:checked + label + div {
         <img src="assets/image/menu.png" width="48" height="48" />
       </li>
 
+      <p id="my-name" style="font-size: 20px; color: white; left: 0; bottom: 0;">{{name}}</p>
+
     </div>
 
-    <div class="main_view">
-      <p id="my-name" style="font-size: 20px; color: white; left: 0; bottom: 0;">{{name}}</p>
-    </div>
+    <!-- <div class="main_view">
+    
+          top: 52px;
+      left: 72px;
+      height: calc(100% - 52px);
+      width: calc(100% - 72px);
+      position: absolute;
+
+      cursor: url(&quot;../client/images/cursor/ico_cursor_freeline.png&quot;) 0 0, auto;
+    </div> -->
+
 
     <ul class="horizontal_menu">
       <li class="horizontal_menu">
@@ -340,30 +417,95 @@ input[id="menuicon"]:checked + label + div {
     </ul>
 
 
- 
-            <input type="checkbox" id="menuicon">
-            <label for="menuicon">
-                  <img src="assets/image/chat.png" width="36" height="36"/>
-            </label>
+    <input type="checkbox" id="menuicon">
+    <label for="menuicon" id="chatImg">
+      <img src="assets/image/chat.png" width="36" height="36" />
+    </label>
 
-            <div class="sidebar" id="sidebar">
-                <div class="menu">
-                 
-                    <div id="chatListDiv">
-                    </div>
-                    <div class="msger-inputarea">
-                      <input id="input-text" type="text" class="msger-input" placeholder="Enter your message..." onkeyup="if(window.event.keyCode == 13) onEventSendMessage()">
-                      <button class="msger-send-btn" onclick="onEventSendMessage()">Send</button>
-                    </div>
-                </div>
-            </div>
+    <div class="sidebar" id="sidebar">
+      <div class="chat-menu">
 
-
+        <div id="chatListDiv">
+        </div>
+        <div class="msger-inputarea">
+          <input id="input-text" type="text" class="msger-input" placeholder="Enter your message..."
+            onkeyup="sendButton()">
+          <button class="msger-send-btn" onclick="onEventSendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="index.js"></script>
-  <script src="protocol.js"></script>
+  <div class="main_view">
+    <canvas id="canvas" width="1446px"
+      style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; background-color: white; cursor: crosshair;"
+      height="672px"></canvas>
+
+    <div id="leftToolbarPlus" class="leftToolbarPlus">
+      <li>
+        <img src="assets/image/circle.png" width="25" height="25" />
+      </li>
+
+      <li>
+        <img src="assets/image/thickness.png" width="25" height="25" />
+      </li>
+
+      <li>
+        <img src="assets/image/eraser.png" width="25" height="25" />
+      </li>
+
+      <li>
+        <img src="assets/image/undo.png" width="25" height="25" />
+      </li>
+
+      <li>
+        <img src="assets/image/redo.png" width="25" height="25" />
+      </li>
+      <li>
+        <img src="assets/image/trashcan.png" width="25" height="25" />
+      </li>
+
+      <li class="dropdown">
+        <img src="assets/image/trashcan.png" width="25" height="25" />
+        <ul>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+            </div>
+          </li>
+          
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/trashcan.png" width="25" height="25" />
+            </div>
+          </li>
+
+        </ul>
+      </li>
+      <!-- https://www.youtube.com/watch?v=NsHhKpR1ItA&ab_channel=JDBART -->
+
+    </div>
+
+
+
+    <!-- <div class="d-flex gap-5justify-content-center">
+        <ul class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 shadow w-220px">
+          <li><a class="dropdown-item rounded-2 active" href="#">A menu</a></li>
+          <li><a class="dropdown-item rounded-2" href="#">B menu</a></li>
+      
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item rounded-2" href="#">Separated link</a></li>
+        </ul>
+      </div> -->
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="index.js"></script>
+    <script src="protocol.js"></script>
 
 
 </body>
