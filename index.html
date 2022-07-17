@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WebRTC Project</title>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
     integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
@@ -103,11 +104,10 @@
     }
 
     /* left Toolbar Plus */
-    .leftToolbarPlus {
+    .drawingLeftToolbar {
       border-radius: 5px;
       border: 3px solid rgb(0, 0, 0);
       width: 55px;
-      height: 90%;
       position: relative;
       z-index: 1;
       top: 0;
@@ -118,14 +118,14 @@
       text-align: center;
     }
 
-    .leftToolbarPlus li {
+    .drawingLeftToolbar li {
       width: 50px;
       height: 50px;
       padding: 12px;
       display: block;
     }
 
-    .leftToolbarPlus li:hover:not(.leftToolbarPlus li ul li) {
+    .drawingLeftToolbar li:hover:not(.drawingLeftToolbar li ul li) {
       padding: 12px;
       background-color: #e6e3e0ce;
       transition: all 0.3s ease;
@@ -137,7 +137,7 @@
       /* Add an active/current color */
     }
 
-    .leftToolbarPlus li ul li div img {
+    .drawingLeftToolbar li ul li div img {
       position: relative;
       left: -12px;
       top: -12px;
@@ -146,7 +146,7 @@
       padding: 12px;
     }
 
-    .leftToolbarPlus li ul li div img:hover {
+    .drawingLeftToolbar li ul li div img:hover {
       background-color: #e6e3e0ce;
       transition: all 0.3s ease;
     }
@@ -155,7 +155,7 @@
       /* Add an active/current color */
     }
 
-    .leftToolbarPlus li ul li {
+    .drawingLeftToolbar li ul li {
       position: relative;
       display: none;
       text-align: center;
@@ -164,17 +164,21 @@
       left: 6px;
       background-color: rgb(16, 209, 177);
     }
-    /* .leftToolbarPlus li ul li:hover {
+    /* .drawingLeftToolbar li ul li:hover {
       background-color: #e6e3e0ce;
       transition: all 0.3s ease;
     } */
 
-    .leftToolbarPlus .dropdown {
+    .drawingLeftToolbar .dropdown {
       position: relative;
     }
 
-    .leftToolbarPlus .dropdown:hover ul li {
+    .drawingLeftToolbar .dropdown:hover ul li {
       display: block;
+    }
+
+    .leftToolbar .dropdown ul li div img:hover {
+      background-color: #e6e3e0;
     }
 
     .active {
@@ -366,15 +370,15 @@
 
     <!-- The sidebar -->
     <div id="leftToolbar" class="leftToolbar">
-      <li v-bind:class="{'active': isVideoShareMode }" onclick="setScreenMode(ScreenMode.videoShare)">
+      <li v-bind:class="{active: screenMode === 0}" @click="setScreenMode(0)">
         <img src="assets/image/video_mode.png" width="48" height="48" />
       </li>
 
-      <li v-bind:class="{'active': isScreenShareMode }" onclick="setScreenMode(ScreenMode.screenShare)">
+      <li v-bind:class="{active: screenMode === 1}" @click="setScreenMode(1)">
         <img src="assets/image/screen_share.png" width="48" height="48" />
       </li>
 
-      <li v-bind:class="{'active': isDrawingShareMode }" onclick="setScreenMode(ScreenMode.drawingShare)">
+      <li v-bind:class="{active: screenMode === 2}" @click="setScreenMode(2)">
         <img src="assets/image/pencil.png" width="48" height="48" />
       </li>
 
@@ -438,55 +442,96 @@
 
   <div class="main_view">
     <canvas id="canvas" width="1446px"
-      style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; background-color: white; cursor: crosshair;"
+      style="position: absolute; left: 0px; top: 0px; max-width: 100%; max-height: 100%; background-color: white; cursor:url(assets/image/pencil.png) 0 50, auto;"
       height="672px"></canvas>
 
-    <div id="leftToolbarPlus" class="leftToolbarPlus">
-      <li>
-        <img src="assets/image/circle.png" width="25" height="25" />
-      </li>
-
-      <li>
-        <img src="assets/image/thickness.png" width="25" height="25" />
-      </li>
-
-      <li>
-        <img src="assets/image/eraser.png" width="25" height="25" />
-      </li>
-
-      <li>
-        <img src="assets/image/undo.png" width="25" height="25" />
-      </li>
-
-      <li>
-        <img src="assets/image/redo.png" width="25" height="25" />
-      </li>
-      <li>
-        <img src="assets/image/trashcan.png" width="25" height="25" />
-      </li>
-
+    <div id="drawingLeftToolbar" class="drawingLeftToolbar">
       <li class="dropdown">
-        <img src="assets/image/trashcan.png" width="25" height="25" />
+        <img :src="image_path" width="25" height="25" />
         <ul>
           <li>
             <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
-              <img src="assets/image/trashcan.png" width="25" height="25" />
-              <img src="assets/image/trashcan.png" width="25" height="25" />
-              <img src="assets/image/trashcan.png" width="25" height="25" />
-              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/freeline.png" width="25" height="25" @click="setShape(0)" v-bind:class="{active: image_path === 'assets/image/freeline.png'}"/>
+              <img src="assets/image/line.png" width="25" height="25" @click="setShape(1)" v-bind:class="{active: image_path === 'assets/image/line.png'}"/>
+              <img src="assets/image/filled_circle.png" width="25" height="25" @click="setShape(2)" v-bind:class="{active: image_path === 'assets/image/filled_circle.png'}"/>
+              <img src="assets/image/filled_rect.png" width="25" height="25" @click="setShape(3)" v-bind:class="{active: image_path === 'assets/image/filled_rect.png'}"/>
             </div>
           </li>
           
           <li>
             <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
-              <img src="assets/image/trashcan.png" width="25" height="25" />
-              <img src="assets/image/trashcan.png" width="25" height="25" />
+              <img src="assets/image/dashed_freeline.png" width="25" height="25" @click="setShape(4)" v-bind:class="{active: image_path === 'assets/image/dashed_freeline.png'}"/>
+              <img src="assets/image/dashed_line.png" width="25" height="25" @click="setShape(5)" v-bind:class="{active: image_path === 'assets/image/dashed_line.png'}"/>
+              <img src="assets/image/circle.png" width="25" height="25" @click="setShape(6)" v-bind:class="{active: image_path === 'assets/image/circle.png'}"/>
+              <img src="assets/image/rect.png" width="25" height="25" @click="setShape(7)" v-bind:class="{active: image_path === 'assets/image/rect.png'}"/>
             </div>
           </li>
-
         </ul>
       </li>
-      <!-- https://www.youtube.com/watch?v=NsHhKpR1ItA&ab_channel=JDBART -->
+
+      <li class="dropdown">
+        <img src="assets/image/color.png" width="25" height="25" v-bind:style="color_filter"/>
+        <ul>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/red.png" width="25" height="25" @click="setColor('red')" v-bind:class="{active: color_name === 'red'}" />
+              <img src="assets/image/orange.png" width="25" height="25" @click="setColor('orange')" v-bind:class="{active: color_name === 'orange'}"/>
+              <img src="assets/image/yellow.png" width="25" height="25" @click="setColor('yellow')" v-bind:class="{active: color_name === 'yellow'}"/>
+              <img src="assets/image/green.png" width="25" height="25" @click="setColor('green')" v-bind:class="{active: color_name === 'green'}"/>
+            </div>
+          </li>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/blue.png" width="25" height="25" @click="setColor('blue')" v-bind:class="{active: color_name === 'blue'}" />
+              <img src="assets/image/indigo.png" width="25" height="25" @click="setColor('indigo')" v-bind:class="{active: color_name === 'indigo'}"/>
+              <img src="assets/image/jaju.png" width="25" height="25" @click="setColor('jaju')" v-bind:class="{active: color_name === 'jaju'}"/>
+              <img src="assets/image/purple.png" width="25" height="25" @click="setColor('purple')" v-bind:class="{active: color_name === 'purple'}"/>
+            </div>
+          </li>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/black.png" width="25" height="25" @click="setColor('black')" v-bind:class="{active: color_name === 'black'}"/>
+              <img src="assets/image/darker_grey.png" width="25" height="25" @click="setColor('darker_grey')" v-bind:class="{active: color_name === 'darker_grey'}"/>
+              <img src="assets/image/grey.png" width="25" height="25" @click="setColor('grey')" v-bind:class="{active: color_name === 'grey'}"/>
+              <img src="assets/image/white.png" width="25" height="25" @click="setColor('white')" v-bind:class="{active: color_name === 'white'}"/>
+            </div>
+          </li>
+        </ul>
+      
+
+      <li class="dropdown">
+        <img :src="thickness_path" width="25" height="25" />
+        <ul>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/8px.png" width="25" height="25" @click="setThickness(0)"  v-bind:class="{active: thickness_path === 'assets/image/8px.png'}"/>
+              <img src="assets/image/16px.png" width="25" height="25" @click="setThickness(1)" v-bind:class="{active: thickness_path === 'assets/image/16px.png'}"/>
+              <img src="assets/image/32px.png" width="25" height="25" @click="setThickness(2)" v-bind:class="{active: thickness_path === 'assets/image/32px.png'}"/>
+              <img src="assets/image/64px.png" width="25" height="25" @click="setThickness(3)" v-bind:class="{active: thickness_path === 'assets/image/64px.png'}"/>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+      <li onclick="eraserMode()" v-bind:class="{active: eraser_mode}">
+        <img src="assets/image/eraser.png" width="25" height="25" />
+      </li>
+
+      <li onclick="undo()">
+        <img src="assets/image/undo.png" width="25" height="25"/>
+      </li>
+
+      <li onclick="redo()">
+        <img src="assets/image/redo.png" width="25" height="25"/>
+      </li>
+      <li onclick="clearMyShape()">
+        <img src="assets/image/trashcan.png" width="25" height="25"/>
+      </li>
+
+      <li onclick="clearShapeAll()">
+        <img src="assets/image/trashcan_all.png" width="25" height="25" />
+      </li>
+
 
     </div>
 
@@ -503,9 +548,9 @@
       </div> -->
 
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="index.js"></script>
-    <script src="protocol.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="index.js"></script>
+      <script src="protocol.js"></script>
 
 
 </body>
