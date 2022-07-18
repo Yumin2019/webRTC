@@ -123,7 +123,7 @@ class DrawingShape {
     context.setLineDash([]);
   
     if(this.isDashed) {
-      context.setLineDash([5 * (this.thicknessIdx + 1)]); 
+      context.setLineDash([10 * (this.thicknessIdx + 1)]); 
     } 
   }
 }
@@ -203,9 +203,25 @@ class DrawingShapeFreeLine extends DrawingShape {
   draw() {
     super.init();
     context.beginPath();
-    for (var i = 0; i < this.posList.length - 1; ++i) {
-      drawLine(this.posList[i].x, this.posList[i].y, this.posList[i + 1].x, this.posList[i + 1].y);
+    context.moveTo(this.posList[0].x, this.posList[0].y);
+    if(this.posList.length < 3) {
+      for(var i = 1; i < this.posList.length; ++i) {
+        let point = this.posList[i];
+        context.lineTo(point.x, point.y);
+      }
+    } else {
+      var i;
+      for (i = 1; i < this.posList.length - 2; ++i) {
+        var c = (this.posList[i].x + this.posList[i + 1].x) / 2;
+        var d = (this.posList[i].y + this.posList[i + 1].y) / 2;
+        context.quadraticCurveTo(this.posList[i].x, this.posList[i].y, c, d);
+      }
+
+      let point = this.posList[i];
+      let nextPoint = this.posList[i + 1];
+       context.quadraticCurveTo(point.x, point.y, nextPoint.x, nextPoint.y);
     }
+   
     context.stroke();
   }
 
@@ -326,9 +342,6 @@ function getCenterPos(left, right) {
   return (left + right) / 2.0;
 }
 
-// document.getElementById('rect').addEventListener('click', printPosition)
-// document.getElementById('relative-rect').addEventListener('click', printPosition)
-
 function onStartShape (offset) {
   startX = offset.offsetX;
   startY = offset.offsetY;
@@ -372,29 +385,6 @@ function onMoveShape(offset) {
 
   curPosX = offset.offsetX;
   curPosY = offset.offsetY;
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-  console.log(offset);
-  console.log("curPosX : " + curPosX);
-  console.log("curPosY : " + curPosY);
-
-  for(var i = 0; i < shapeList.length; ++i) {
-    shapeList[i].draw();
-
-    // 지우개 작업해야 한다.
-    if(currentShape.shape === SHAPE_TYPE_ERASER) {
-      if( context.isPointInPath(curPosX, curPosY) ) {
-        alert('isPointInPath : ' + i);
-        currentShape = null;
-        return;
-      } else if(context.isPointInStroke(curPosX, curPosY)) {
-        alert("isPointInStroke : " + i);
-        currentShape = null;
-        return;
-      }
-    }
-
-    console.log("shapeList[" + i + "]  : " + shapeList[i].toString());
-  }
 
   switch (currentShape.shape) {
     case SHAPE_TYPE_FREE_LINE:
@@ -426,6 +416,51 @@ function onMoveShape(offset) {
       break;
   }
 
+  // draw background
+  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  console.log(offset);
+  console.log("curPosX : " + curPosX);
+  console.log("curPosY : " + curPosY);
+
+  for(var i = 0; i < shapeList.length; ++i) {
+    shapeList[i].draw();
+
+    // 지우개 작업해야 한다.
+    if(currentShape.shape === SHAPE_TYPE_ERASER) {
+
+      switch (shapeList[i].shape) {
+        case SHAPE_TYPE_EMPTY_RECTANGLE:
+        case SHAPE_TYPE_EMPTY_ELLIPSE:
+        case SHAPE_TYPE_LINE:
+        case SHAPE_TYPE_DAHSED_LINE:
+        case SHAPE_TYPE_FREE_LINE:
+        case SHAPE_TYPE_DASHED_FREE_LINE: {
+          if (context.isPointInStroke(curPosX, curPosY)) {
+            deleteShape(i);
+            return;
+          }
+        }
+          break;
+        case SHAPE_TYPE_RECTANGLE:
+        case SHAPE_TYPE_ELLIPSE:
+          {
+            if (context.isPointInPath(curPosX, curPosY)) {
+              deleteShape(i);
+              return;
+            }
+          }
+          break;
+        default: {
+
+        }
+          break;
+      }
+    }
+
+    console.log("shapeList[" + i + "]  : " + shapeList[i].toString());
+  }
+
+  // draw current shape
   currentShape.draw();
 }
 
@@ -488,30 +523,6 @@ function ellipse(context, cx, cy, rx, ry){
   context.restore(); // restore to original state
   context.stroke();
 }
-
-function drawEllipse(centerX, centerY, width, height) {
-
-  context.beginPath();
-
-  context.moveTo(centerX, centerY - height / 2); // A1
-
-  context.bezierCurveTo(
-    centerX + width / 2, centerY - height / 2, // C1
-    centerX + width / 2, centerY + height / 2, // C2
-    centerX, centerY + height / 2); // A2
-
-  context.bezierCurveTo(
-    centerX - width / 2, centerY + height / 2, // C3
-    centerX - width / 2, centerY - height / 2, // C4
-    centerX, centerY - height / 2); // A1
-
-  // context.fillStyle = "red";
-  // context.fill();
-  context.stroke();
-  context.closePath();
-}
-
-
   // context.clearRect(0, 0, context.canvas.width, context.canvas.height)
 
 function resize() {
@@ -565,11 +576,27 @@ function chattingKeyUp() {
 
 var undoList = [];
 
+function deleteShape(idx) {
+  if(idx < 0 || idx >= shapeList.length) {
+    return;
+  }
+
+  var shape = shapeList.at(idx);
+  undoList.push(shape);
+  for(var i = idx; i < shapeList.length - 1; ++i) {
+    shapeList[i] = shapeList[i + 1]; 
+  }
+
+  shapeList.pop();
+  redraw();
+}
+
 function redo() {
   if(undoList.length == 0) {
     return;
   }
 
+  //addShapeEvent(EVENT_ADD_SHAPE, 1);
   var shape = undoList.at(undoList.length - 1);
   shapeList.push(shape);
   undoList.pop();
@@ -579,7 +606,7 @@ function redo() {
 function undo() {
   if(shapeList.length == 0) {
     return;
-  }
+  } 
 
   var shape = shapeList.at(shapeList.length - 1);
   undoList.push(shape);
@@ -596,14 +623,15 @@ function redraw() {
 }
 
 function clearMyShape() {
-  ybdi
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  undoList.push(shapeList);
   shapeList = [];
+  redraw();
 }
 
 function clearShapeAll() {
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  undoList.push(shapeList);
   shapeList = [];
+  redraw();
 }
 
 var uuid = 'GUEST ' + rand(10000, 99999);
