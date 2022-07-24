@@ -446,7 +446,7 @@
       height="672px"></canvas>
 
     <div id="drawingLeftToolbar" class="drawingLeftToolbar">
-      <li class="dropdown">
+      <li class="dropdown" v-bind:class="{active: drawing_mode === 0}" @click="setShape()">
         <img :src="image_path" width="25" height="25" />
         <ul>
           <li>
@@ -513,7 +513,30 @@
         </ul>
       </li>
 
-      <li onclick="eraserMode()" v-bind:class="{active: eraser_mode}">
+      
+      <li class="dropdown" v-bind:class="{active: drawing_mode === 1}" @click="setStamp()">
+        <img :src="stamp_path" width="25" height="25" />
+        <ul>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/kotlin.png" width="25" height="25" @click="setStamp(0)"  v-bind:class="{active: stamp_path === 'assets/image/kotlin.png'}"/>
+              <img src="assets/image/java.png" width="25" height="25" @click="setStamp(1)" v-bind:class="{active: stamp_path === 'assets/image/java.png'}"/>
+              <img src="assets/image/js.png" width="25" height="25" @click="setStamp(2)" v-bind:class="{active: stamp_path === 'assets/image/js.png'}"/>
+              <img src="assets/image/python.png" width="25" height="25" @click="setStamp(3)" v-bind:class="{active: stamp_path === 'assets/image/python.png'}"/>
+            </div>
+          </li>
+          <li>
+            <div class="no-hover" style="flex-direction: row; display: flex; align-items: center;">
+              <img src="assets/image/android.png" width="25" height="25" @click="setStamp(4)"  v-bind:class="{active: stamp_path === 'assets/image/android.png'}"/>
+              <img src="assets/image/ios.png" width="25" height="25" @click="setStamp(5)" v-bind:class="{active: stamp_path === 'assets/image/ios.png'}"/>
+              <img src="assets/image/androidstudio.png" width="25" height="25" @click="setStamp(6)" v-bind:class="{active: stamp_path === 'assets/image/androidstudio.png'}"/>
+              <img src="assets/image/xcode.png" width="25" height="25" @click="setStamp(7)" v-bind:class="{active: stamp_path === 'assets/image/xcode.png'}"/>
+            </div>
+          </li>
+        </ul>
+      </li>
+
+      <li @click="setEraserMode()" v-bind:class="{active: drawing_mode === 2}">
         <img src="assets/image/eraser.png" width="25" height="25" />
       </li>
 
@@ -547,10 +570,9 @@
         </ul>
       </div> -->
 
-
       <script src="/socket.io/socket.io.js"></script>
-      <script src="index.js"></script>
       <script src="protocol.js"></script>
+      <script src="index.js"></script>
 
 
 </body>

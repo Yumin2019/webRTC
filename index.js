@@ -81,8 +81,13 @@ class Point {
 	}
 
 	toString() {
-		return ("[" + this.x + "; " + this.y + "]");
+		return this.x + "," + this.y;
 	}
+
+  toValue(string) {
+    this.x = parseInt(string.split(",")[0]);
+    this.y = parseInt(string.split(",")[1]);
+  }
 }
 
 class DrawingShape {
@@ -92,10 +97,12 @@ class DrawingShape {
     this.isFilled = isFilled;
     this.isDashed = isDashed;
     this.thicknessIdx = thicknessIdx;
+    this.owner = uuid;
+    this.uuid = rand(10000, 99999).toString();
   }
 
   toString() {
-    console.log("shape : " + this.shape + " color : " + this.color + " isFilled : " + this.isFilled + " isDashed : " + this.isDashed + " thickness : " + this.thicknessIdx);
+    console.log("shape : " + this.shape + " color : " + this.color + " isFilled : " + this.isFilled + " isDashed : " + this.isDashed + " thickness : " + this.thicknessIdx + " owner : " + this.owner);
   }
 
   setColor(color) {
@@ -126,12 +133,104 @@ class DrawingShape {
       context.setLineDash([10 * (this.thicknessIdx + 1)]); 
     } 
   }
+
+  toJson() {
+    var shapeString = "";
+    switch (this.shape) {
+      case SHAPE_TYPE_FREE_LINE:
+        shapeString = "SHAPE_TYPE_FREE_LINE";
+        break;
+      case SHAPE_TYPE_LINE:
+        shapeString = "SHAPE_TYPE_LINE";
+        break;
+      case SHAPE_TYPE_ELLIPSE:
+        shapeString = "SHAPE_TYPE_ELLIPSE";
+        break;
+      case SHAPE_TYPE_RECTANGLE:
+        shapeString = "SHAPE_TYPE_RECTANGLE";
+        break;
+      case SHAPE_TYPE_DASHED_FREE_LINE:
+        shapeString = "SHAPE_TYPE_DASHED_FREE_LINE";
+        break;
+      case SHAPE_TYPE_DAHSED_LINE:
+        shapeString = "SHAPE_TYPE_DAHSED_LINE";
+        break;
+      case SHAPE_TYPE_EMPTY_ELLIPSE:
+        shapeString = "SHAPE_TYPE_EMPTY_ELLIPSE";
+        break;
+      case SHAPE_TYPE_EMPTY_RECTANGLE:
+        shapeString = "SHAPE_TYPE_EMPTY_RECTANGLE";
+        break;
+      case SHAPE_TYPE_ERASER:
+        shapeString = "SHAPE_TYPE_ERASER";
+        break;
+      case SHAPE_TYPE_STAMP: 
+        shapeString = "SHAPE_TYPE_STAMP";
+      break;
+    }
+
+    return {
+      shape: shapeString, color: this.color, isFilled: this.isFilled.toString(), isDashed: this.isDashed.toString(), thicknessIdx: this.thicknessIdx.toString(), owner: this.owner, uuid: this.uuid
+    }
+  }
+
+  loadJson(json) {
+    try {
+      switch (json.shape) {
+        case "SHAPE_TYPE_FREE_LINE":
+          this.shape = SHAPE_TYPE_FREE_LINE;
+          break;
+        case "SHAPE_TYPE_LINE":
+          this.shape = SHAPE_TYPE_LINE;
+          break;
+        case "SHAPE_TYPE_ELLIPSE":
+          this.shape = SHAPE_TYPE_ELLIPSE;
+          break;
+        case "SHAPE_TYPE_RECTANGLE":
+          this.shape = SHAPE_TYPE_RECTANGLE;
+          break;
+        case "SHAPE_TYPE_DASHED_FREE_LINE":
+          this.shape = SHAPE_TYPE_DASHED_FREE_LINE;
+          break;
+        case "SHAPE_TYPE_DAHSED_LINE":
+          this.shape = SHAPE_TYPE_DAHSED_LINE;
+          break;
+        case "SHAPE_TYPE_EMPTY_ELLIPSE":
+          this.shape = SHAPE_TYPE_EMPTY_ELLIPSE;
+          break;
+        case "SHAPE_TYPE_EMPTY_RECTANGLE":
+          this.shape = SHAPE_TYPE_EMPTY_RECTANGLE;
+          break;
+        case "SHAPE_TYPE_ERASER":
+          this.shape = SHAPE_TYPE_ERASER;
+          break;
+        case "SHAPE_TYPE_STAMP":
+          this.shape = SHAPE_TYPE_STAMP;
+          break;
+      }
+
+      this.color = json.color;
+      this.isFilled = json.isFilled === "true";
+      this.isDashed = json.isDashed === "true";
+      this.thicknessIdx = parseInt(json.thicknessIdx);
+      this.owner = json.owner;
+      this.uuid = json.uuid;
+
+    }catch(error) {
+      console.log(error);
+    }
+  }
 }
 
 class DrawingShapeEraser extends DrawingShape {
   constructor(point) {
     super(SHAPE_TYPE_ERASER, COLOR_TYPE_BLACK, false, false, 0);
     this.point = point;
+  }
+
+  toString() {
+    super.toString();
+    console.log("point : " + this.point);
   }
 
   setPoint(point) {
@@ -156,6 +255,11 @@ class DrawingShapeLine extends DrawingShape {
     super(shape, color, isFilled, isDashed, thicknessIdx);
     this.startPos = startPos;
     this.endPos = endPos;
+  }
+
+  toString() {
+    super.toString();
+    console.log("startPos : " + this.startPos + " endPos : " + this.endPos);
   }
 
   setStartPos(point) {
@@ -184,6 +288,23 @@ class DrawingShapeLine extends DrawingShape {
   clone() {
     return new DrawingShapeLine(this.color, this.isFilled, this.isDashed, this.thicknessIdx, this.startPos.clone(), this.endPos.clone());
   } 
+
+  toJson() {
+    var json = super.toJson();
+    return {
+      ...json, startPos: this.startPos.toString(), endPos: this.endPos.toString()
+    }
+  }
+
+  loadJson(json) {
+    super.loadJson(json);
+    try {
+      this.startPos.toValue(json.startPos);
+      this.endPos.toValue(json.endPos);
+    }catch(error) {
+      console.log(error);
+    }
+  }
 }
 
 class DrawingShapeFreeLine extends DrawingShape {
@@ -194,6 +315,18 @@ class DrawingShapeFreeLine extends DrawingShape {
     }
     super(shape, color, isFilled, isDashed, thicknessIdx);
     this.posList = posList;
+  }
+  
+  toString() {
+    super.toString();
+    var posListString = "";
+    for(var i = 0; i < this.posList.length; ++i) {
+      posListString += this.posList[i].toString();
+      if(i < this.posList.length - 1) {
+        posListString += "|";
+      }
+      console.log("posList : " + posListString);
+    }
   }
 
   addPos(point) {
@@ -228,6 +361,38 @@ class DrawingShapeFreeLine extends DrawingShape {
   clone() {
     return new DrawingShapeFreeLine(this.color, this.isFilled, this.isDashed, this.thicknessIdx, this.posList.slice());
   } 
+
+  toJson() {
+    var json = super.toJson();
+    var posListString = "";
+    for(var i = 0; i < this.posList.length; ++i) {
+      posListString += this.posList[i].toString();
+      if(i < this.posList.length - 1) {
+        posListString += "|";
+      }
+    }
+
+    return {
+      ...json, posList: posListString,
+    }
+  }
+
+  loadJson(json) {
+    super.loadJson(json);
+    try {
+      // "a,b|c,d|e,f";
+      this.posList = [];
+      var posListString = json.posList.split("|");
+      for(var i = 0; i < posListString.length; ++i) {
+        var pos = new Point();
+        pos.toValue(posListString[i]);
+        this.posList.push(pos);
+      }
+    }catch(error) {
+      console.log(error);
+    }
+  }
+
 }
 
 class DrawingShapeEllipse extends DrawingShapeLine {
@@ -255,6 +420,14 @@ class DrawingShapeEllipse extends DrawingShapeLine {
   clone() {
     return new DrawingShapeEllipse(this.color, this.isFilled, this.isDashed, this.thicknessIdx, this.startPos.clone(), this.endPos.clone());
   } 
+
+  toJson() {
+    return super.toJson();
+  }
+
+  loadJson(json) {
+    super.loadJson(json);
+  }
 }
 
 class DrawingShapeRectangle extends DrawingShapeLine {
@@ -280,7 +453,46 @@ class DrawingShapeRectangle extends DrawingShapeLine {
   clone() {
     return new DrawingShapeRectangle(this.color, this.isFilled, this.isDashed, this.thicknessIdx, this.startPos.clone(), this.endPos.clone());
   } 
+  
+  toJson() {
+    return super.toJson();
+  }
+
+  loadJson(json) {
+    super.loadJson(json);
+  }
 }
+
+class DrawingShapeStamp extends DrawingShapeLine {
+  constructor(stampIdx, startPos, endPos = startPos.clone()) {
+    super(COLOR_TYPE_BLACK, true, false, 0, startPos, endPos);
+    this.shape = SHAPE_TYPE_STAMP;
+    this.stampIdx = stampIdx;
+  }
+
+  draw() {
+    super.init();
+    context.rect(this.startPos.x, this.startPos.y, 75, 75);
+    context.drawImage(imageList[this.stampIdx], this.startPos.x, this.startPos.y, 75, 75);
+  }
+
+  clone() {
+    return new DrawingShapeStamp(this.stampIdx, this.startPos, this.endPos);
+  } 
+  
+  toJson() {
+    var json = super.toJson();
+    return {
+      ...json, stampIdx: stampIdx.toString(),
+    }
+  }
+
+  loadJson(json) {
+    super.loadJson(json);
+    this.stampIdx = parseInt(json.stampIdx);
+  }
+}
+
 
 const SHAPE_TYPE_FREE_LINE = 0;
 const SHAPE_TYPE_LINE = 1;
@@ -291,6 +503,7 @@ const SHAPE_TYPE_DAHSED_LINE = 5;
 const SHAPE_TYPE_EMPTY_ELLIPSE = 6;
 const SHAPE_TYPE_EMPTY_RECTANGLE = 7;
 const SHAPE_TYPE_ERASER = 20;
+const SHAPE_TYPE_STAMP = 21;
 
 const COLOR_TYPE_RED = "rgb(237, 28, 36)";
 const COLOR_TYPE_ORANGE = "rgb(255, 127, 39)";
@@ -305,6 +518,29 @@ const COLOR_TYPE_DARKER_GREY = "rgb(127, 127, 127)";
 const COLOR_TYPE_GREY = "rgb(195, 195, 195)";
 const COLOR_TYPE_WHITE = "rgb(255, 255, 255)";
 
+const imageList = [new Image(), new Image(), new Image(), new Image(),
+  new Image(), new Image(), new Image(), new Image(),]
+
+imageList[0].src = "assets/image/kotlin.png";
+imageList[1].src = "assets/image/java.png";
+imageList[2].src = "assets/image/js.png";
+imageList[3].src = "assets/image/python.png";
+
+imageList[4].src = "assets/image/android.png";
+imageList[5].src = "assets/image/ios.png";
+imageList[6].src = "assets/image/androidstudio.png";
+imageList[7].src = "assets/image/xcode.png";
+
+var prevTime = new Date();
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// imageList[7].onload = socket.emit("onEventJoinConf");
+
+//  socket.emit("onEventJoinConf");
+socket.emit("onEventJoinConf");
 
 var arrLineWidth = [1, 5, 10, 20];
 var thicknessIdx = 1;
@@ -318,11 +554,13 @@ var curShape = SHAPE_TYPE_FREE_LINE;
 var curColor = COLOR_TYPE_BLACK;
 var isFilled = true;
 var isDashed = false;
+var isPresenter = false;
 
 var curPosX;
 var curPosY;
 var startX;
 var startY;
+var stampIdx = 0;
 
 var shapeList = [];
 canvas.addEventListener("mousedown", function (offset) {
@@ -338,6 +576,7 @@ canvas.addEventListener("mouseout", function (offset) {
   onEndShape(offset)
 }, false);
 
+
 function getCenterPos(left, right) {
   return (left + right) / 2.0;
 }
@@ -345,6 +584,8 @@ function getCenterPos(left, right) {
 function onStartShape (offset) {
   startX = offset.offsetX;
   startY = offset.offsetY;
+
+  console.log("curShape : " + curShape);
 
   switch (curShape) {
     case SHAPE_TYPE_FREE_LINE:
@@ -371,11 +612,15 @@ function onStartShape (offset) {
       currentShape = new DrawingShapeEraser(startX, startY);
     }
     break;
+    case SHAPE_TYPE_STAMP: {
+      currentShape = new DrawingShapeStamp(stampIdx, new Point(startX, startY));
+    }
+    break;
     default: {
     }
       break;
   }
-  console.log(currentShape);
+  console.log(currentShape.toJson());
 }
 
 function onMoveShape(offset) {
@@ -407,9 +652,19 @@ function onMoveShape(offset) {
       break;
 
     case SHAPE_TYPE_ERASER: {
+      var curTime = Date.now();
+      if(curTime - prevTime < 50) {
+        return;
+      }
+      
+      prevTime = curTime;
       currentShape.setPoint(new Point(curPosX, curPosY));
     }
       break;
+
+    case SHAPE_TYPE_STAMP: 
+      break;
+
     default: {
 
     }
@@ -441,6 +696,7 @@ function onMoveShape(offset) {
           }
         }
           break;
+        case SHAPE_TYPE_STAMP:
         case SHAPE_TYPE_RECTANGLE:
         case SHAPE_TYPE_ELLIPSE:
           {
@@ -491,6 +747,10 @@ function onEndShape(offset) {
     }
       break;
 
+    case SHAPE_TYPE_STAMP: {
+
+    }
+      break;
     case SHAPE_TYPE_ERASER: {
       currentShape = null;
       return;
@@ -502,8 +762,15 @@ function onEndShape(offset) {
       break;
   }
 
-  shapeList.push(currentShape.clone());
+  var shape = currentShape.clone();
   currentShape = null;
+  
+  var json = shape.toJson();
+  console.log(JSON.stringify(json));
+  socket.emit("onEventAddDrawingShape", json, (response) => {
+    shapeList.push(shape);
+    redraw();
+  });
 }
 
 function drawLine(sx, sy, ex, ey) {
@@ -555,7 +822,7 @@ function resize() {
   canvas.style.height = height + 'px';
 };
 
-window.addEventListener('resize', resize, false);
+// window.addEventListener('resize', resize, false);
 
 function sendButton() {
   console.log(window.event.keyCode);
@@ -574,6 +841,18 @@ function chattingKeyUp() {
   }
 }
 
+function removeShapeInList(idx) {
+  if(shapeList.length == 0) {
+    return;
+  }
+  
+  for(var i = idx; i < shapeList.length - 1; ++i) {
+    shapeList[i] = shapeList[i + 1]; 
+  }
+  shapeList.pop();
+}
+
+
 var undoList = [];
 
 function deleteShape(idx) {
@@ -582,13 +861,11 @@ function deleteShape(idx) {
   }
 
   var shape = shapeList.at(idx);
-  undoList.push(shape);
-  for(var i = idx; i < shapeList.length - 1; ++i) {
-    shapeList[i] = shapeList[i + 1]; 
-  }
-
-  shapeList.pop();
-  redraw();
+  socket.emit("onEventDeleteDrawingShape", shape.toJson(), (response) => {
+    undoList.push(shape);
+    removeShapeInList(idx);
+    redraw();
+  });
 }
 
 function redo() {
@@ -596,22 +873,40 @@ function redo() {
     return;
   }
 
-  //addShapeEvent(EVENT_ADD_SHAPE, 1);
+  console.log("redo");
   var shape = undoList.at(undoList.length - 1);
-  shapeList.push(shape);
-  undoList.pop();
-  redraw();
+  var json = shape.toJson();
+  console.log(JSON.stringify(json));
+
+  socket.emit("onEventAddDrawingShape", json, (response) => {
+    shapeList.push(shape);
+    undoList.pop();
+    redraw();
+  });
 }
 
 function undo() {
-  if(shapeList.length == 0) {
-    return;
-  } 
+  var idx = -1;
+  for(var i = shapeList.length - 1; i >= 0; --i) {
+    if(shapeList[i].owner == uuid) {
+      idx = i;
+      break;
+    }
+  }
 
-  var shape = shapeList.at(shapeList.length - 1);
-  undoList.push(shape);
-  shapeList.pop();
-  redraw();
+  if(idx === -1) {
+    return;
+  }
+
+  console.log("undo");
+  var json = shapeList[idx].toJson();
+  console.log(JSON.stringify(json));
+  
+  socket.emit("onEventDeleteDrawingShape", json, (response) => {
+    undoList.push(shapeList[idx]);
+    removeShapeInList(idx);
+    redraw();
+  });
 }
 
 function redraw() {
@@ -623,15 +918,26 @@ function redraw() {
 }
 
 function clearMyShape() {
-  undoList.push(shapeList);
-  shapeList = [];
-  redraw();
+  socket.emit("onEventDeleteMyDrawingShapeAll", {owner: uuid}, (response) => {
+    for(var i = 0; i < shapeList.length; ++i) {
+      if(shapeList[i].owner === uuid) {
+        undoList.push(shapeList[i]);
+        removeShapeInList(i);
+        --i;
+      }
+    }
+    redraw();
+  });
 }
 
 function clearShapeAll() {
-  undoList.push(shapeList);
-  shapeList = [];
-  redraw();
+  socket.emit("onEventDeleteDrawingShapeAll", {}, (response) => {
+    for(var i = 0; i < shapeList.length; ++i) {
+      undoList.push(shapeList[i]);
+    }
+    shapeList = [];
+    redraw();
+  });
 }
 
 var uuid = 'GUEST ' + rand(10000, 99999);
@@ -676,18 +982,12 @@ var myName = new Vue({
     }
   })
 
-  var isEraserMode = false;
-  function eraserMode() {
-    isEraserMode = !isEraserMode;
-    drawingLeftToolbar.eraser_mode = isEraserMode;
-    if(isEraserMode) {
-      curShape = SHAPE_TYPE_ERASER;
-      canvas.style.cursor = "url(assets/image/eraser.png) 0 50, auto";
-    } else {
-      curShape = recent_shape;
-      canvas.style.cursor = "url(assets/image/pencil.png) 0 50, auto";
-    }
-  }
+  const DRAWING_MODE_SHAPE = 0;
+  const DRAWING_MODE_STAMP = 1;
+  const DRAWING_MODE_ERASER = 2;
+
+  var drawingMode = DRAWING_MODE_SHAPE;
+
 
   var drawingLeftToolbar = new Vue({
     el: '#drawingLeftToolbar',
@@ -696,10 +996,54 @@ var myName = new Vue({
       color_filter: 'filter: invert(0%) sepia(0%) saturate(8%) hue-rotate(253deg) brightness(100%) contrast(100%)',
       color_name: "black",
       thickness_path: "assets/image/16px.png",
-      eraser_mode: false,
+      stamp_path: "assets/image/kotlin.png",
       recent_shape: 0,
+      drawing_mode: 0,
     },
     methods: {
+      setEraserMode: function() {
+        this.drawing_mode = DRAWING_MODE_ERASER;
+        drawingMode = DRAWING_MODE_ERASER;
+        curShape = SHAPE_TYPE_ERASER;
+        canvas.style.cursor = "url(assets/image/eraser.png) 0 50, auto";
+    
+        console.log("curShape : " + curShape);
+      },
+      setStamp: function(idx = stampIdx) {
+        stampIdx = idx;
+        this.drawing_mode = DRAWING_MODE_STAMP;
+        drawingMode = DRAWING_MODE_STAMP;
+        curShape = SHAPE_TYPE_STAMP;
+        canvas.style.cursor = "url(assets/image/stamp_cursor.png) 0 50, auto";
+
+        if(idx == 0) {
+          this.stamp_path = "assets/image/kotlin.png";
+        //  canvas.style.cursor = "url(assets/image/kotlin.png) 0 50, auto";
+        } else if (idx == 1) {
+          this.stamp_path = "assets/image/java.png";
+         // canvas.style.cursor = "url(assets/image/java.png) 0 50, auto";
+        } else if (idx == 2) {
+          this.stamp_path = "assets/image/js.png";
+        //  canvas.style.cursor = "url(assets/image/js.png) 0 50, auto";
+        } else if (idx == 3) {
+          this.stamp_path = "assets/image/python.png";
+        //  canvas.style.cursor = "url(assets/image/python.png) 0 50, auto";
+        } else if (idx == 4) {
+          this.stamp_path = "assets/image/android.png";
+       //   canvas.style.cursor = "url(assets/image/android.png) 0 50, auto";
+        } else if (idx == 5) {
+          this.stamp_path = "assets/image/ios.png";
+        //  canvas.style.cursor = "url(assets/image/ios.png) 0 50, auto";
+        } else if (idx == 6) {
+          this.stamp_path = "assets/image/androidstudio.png";
+          canvas.style.cursor = "url(assets/image/androidstudio.png) 0 50, auto";
+        } else if (idx == 7) {
+          this.stamp_path = "assets/image/xcode.png";
+       //   canvas.style.cursor = "url(assets/image/xcode.png) 0 50, auto";
+        }
+
+        console.log("curShape : " + curShape);
+      },
       setThickness: function(idx) {
         thicknessIdx = idx;
         if(idx == 0) {
@@ -712,10 +1056,10 @@ var myName = new Vue({
           this.thickness_path = "assets/image/64px.png";
         }       
       },
-      setShape: function(idx) {
+      setShape: function(idx = this.recent_shape) {
         isDashed = false;
         isFilled = true;
-        recent_shape = idx;
+        this.recent_shape = idx;
           switch (idx) {
           case SHAPE_TYPE_FREE_LINE:
             this.image_path = "assets/image/freeline.png";
@@ -745,14 +1089,16 @@ var myName = new Vue({
             this.image_path = "assets/image/rect.png";
             isFilled = false;
             break;
-        }
+          }
         
         canvas.style.cursor = "url(assets/image/pencil.png) 0 50, auto";
-        this.eraser_mode = false;
+        drawingMode = DRAWING_MODE_SHAPE;
+        this.drawing_mode = DRAWING_MODE_SHAPE;
         curShape = idx;
         console.log("isDahsed : " + isDashed + " isFilled : " + isFilled);
-      },
 
+        console.log("curShape : " + curShape);
+      },
       setColor: function(color) {
         console.log(color);
         this.color_name = color;
