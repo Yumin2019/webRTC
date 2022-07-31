@@ -344,6 +344,90 @@
       background: rgb(10, 148, 125);
       outline: none;
     }
+
+/* DIALOG */
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  margin: auto;
+  background-color: #fefefe;
+  padding: 8px 20px;
+  border: 1px solid #888;
+  width: 400px;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  margin-left: 97%;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  margin: 25px auto;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* toast  */
+#toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    padding: 8px 20px;
+    transform: translate(-50%);
+    transition: opacity 1.5s;
+    visibility: hidden;
+    opacity: 0;
+    border-radius: 30px;
+    overflow: hidden;
+    font-size: 20px;
+    visibility: hidden;
+    background: rgb(87, 87, 87);
+    color: #fff;
+    z-index: 10000;
+}
+
+#toast.reveal {
+    opacity: 1;
+    visibility: visible;
+}
+
+</style>
+
   </style>
 
   <!-- custom dropdowns -->
@@ -386,20 +470,29 @@
         <img src="assets/image/menu.png" width="48" height="48" />
       </li>
 
-      <p id="my-name" style="font-size: 20px; color: white; left: 0; bottom: 0;">{{name}}</p>
+      <div style="font-size: 18px; color: white; left: 0; bottom: 0;">
+        <p>
+          {{name}}
+        </p>
+        <button @click="presenterButton()" style="width: 70px;">발표자</button>
+        <p style="color: black">
+           {{presenterName}}
+        </p>
+
+        </div>
 
     </div>
 
-    <!-- <div class="main_view">
+    <div class="main_view">
     
-          top: 52px;
+          <!-- top: 52px;
       left: 72px;
       height: calc(100% - 52px);
       width: calc(100% - 72px);
       position: absolute;
 
-      cursor: url(&quot;../client/images/cursor/ico_cursor_freeline.png&quot;) 0 0, auto;
-    </div> -->
+      cursor: url(&quot;../client/images/cursor/ico_cursor_freeline.png&quot;) 0 0, auto; -->
+    </div>
 
 
     <ul class="horizontal_menu">
@@ -555,20 +648,36 @@
         <img src="assets/image/trashcan_all.png" width="25" height="25" />
       </li>
 
+     
 
     </div>
 
 
+    <div id="toast"></div>
 
-    <!-- <div class="d-flex gap-5justify-content-center">
-        <ul class="dropdown-menu position-static d-grid gap-1 p-2 rounded-3 mx-0 shadow w-220px">
-          <li><a class="dropdown-item rounded-2 active" href="#">A menu</a></li>
-          <li><a class="dropdown-item rounded-2" href="#">B menu</a></li>
-      
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item rounded-2" href="#">Separated link</a></li>
-        </ul>
-      </div> -->
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close" onclick="closeDialog(true)">&times;</span>
+        <p id="dialogMessage">Some text in the Modal..</p>
+        <div class="loader"></div>
+        <row style="margin-left: calc(100% - 150px);">
+          <button id="yes" style="width: 70px;">수락</button>
+          <button id="no" style="width: 70px;">거절</button>
+        </row>
+
+
+      </div>
+    </div>
+
+
+  
+    <script>
+
+     
+
+      </script>
 
       <script src="/socket.io/socket.io.js"></script>
       <script src="protocol.js"></script>

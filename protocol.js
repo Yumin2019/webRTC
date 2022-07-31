@@ -117,8 +117,17 @@ socket.on("onEventDeleteMyDrawingShapeAll", (json) => {
     redraw();
 });
 
+var userList = [];
+
 socket.on("onEventJoinConf", (json) => {
     console.log("onEventJoinConf json: " + JSON.stringify(json));
+    leftToolbar.uuid = json.givenUUID;
+    leftToolbar.name = json.givenName;
+    uuid = json.givenUUID;
+    userList = json.userList;
+
+    leftToolbar.presenterName = json.presenterName;
+    leftToolbar.presenterUUID = json.presenterUUID;
 
     for(var i = 0; i < json.shapeList.length; ++i) {
         let shape;
@@ -171,3 +180,59 @@ socket.on("onEventJoinConf", (json) => {
     scroll.scrollTop = scroll.scrollHeight;
     redraw();
 });
+
+socket.on("onEventPresenterChanged", (json) => {
+    console.log("onEventPresenterChanged json: " + JSON.stringify(json));
+    leftToolbar.presenterName = json.presenterName;
+    leftToolbar.presenterUUID = json.presenterUUID;
+});
+
+socket.on("onEventUserListChanged", (json) => {
+    console.log("onEventUserListChanged json: " + JSON.stringify(json));
+    userList = json.userList;
+});
+
+socket.on("onEventRequestPresenterPermission", (json) => {
+    console.log("onEventRequestPresenterPermission json: " + JSON.stringify(json));
+
+    var dialogCount = 9;
+    clearTimer();
+  
+    dialogTimer = window.setInterval(function () {
+        dialogMessage.innerText = json.name + "님이 발표자 권한을 요청했습니다. (" + dialogCount + ")";
+        if (dialogCount == 0) {
+            closeDialog(true);
+        }
+
+        --dialogCount;
+        console.log("dialogCount : " + dialogCount);
+    }, 1000);
+
+    // 거절 이벤트 처리
+    dialogCancelled = function () {
+        socket.emit("onEventPresenterDialogCallback", { value: false, from: json.uuid, to: uuid });
+    }
+
+    showDialog(json.name + "님이 발표자 권한을 요청했습니다. (10)", "수락", "거절", function () {
+        // 수락 이벤트 처리
+        socket.emit("onEventPresenterDialogCallback", { value: true, from: json.uuid, to: uuid });
+    }, null, true);
+});
+
+socket.on("onEventPresenterDialogCallback", (json) => {
+    console.log("onEventPresenterDialogCallback json: " + JSON.stringify(json));
+    let value = json.value;
+    closeDialog(false);
+
+    if(value) {
+        console.log("uuid : " + uuid);
+        if(json.from === uuid) {
+            toast("발표자가 되었습니다.");
+        } else {
+            toast("더 이상 발표자가 아닙니다.");
+        }
+    } else {
+        toast("요청이 취소되었습니다.");
+    }
+});
+

@@ -940,19 +940,97 @@ function clearShapeAll() {
   });
 }
 
-var uuid = 'GUEST ' + rand(10000, 99999);
-console.log(uuid);
-// socket.emit("onEventSetUserName", name);
-var myName = new Vue({
-    el: '#my-name',
-    data: {
-      name: uuid,
-    }
-  })
+var uuid = "";
+
+let removeToast;
+function toast(string) {
+    const toast = document.getElementById("toast");
+    toast.classList.contains("reveal") ?
+        (clearTimeout(removeToast), removeToast = setTimeout(function () {
+            document.getElementById("toast").classList.remove("reveal")
+        }, 2000)) :
+        removeToast = setTimeout(function () {
+            document.getElementById("toast").classList.remove("reveal")
+        }, 2000)
+    toast.classList.add("reveal"),
+        toast.innerText = string
+}
+
 
   function getDateTime() {
     return new Date().toTimeString().split(" ")[0];
   }
+
+   var modal = document.getElementById("myModal");
+   var span = document.getElementsByClassName("close")[0];
+   var dialogMessage = document.getElementById("dialogMessage");
+
+   function useDialog() {
+    return modal.style.display == "block";
+   }
+
+   function showDialog(message = "", yesText = "", noText = "", yesFunc = null, noFunc = null, useIndicator = false) {
+     var yesButton = document.getElementById("yes");
+     var noButton = document.getElementById("no");
+     var loader = document.getElementsByClassName("loader")[0];
+     yesButton.style.visibility  = "hidden";
+     noButton.style.visibility = "hidden";
+     loader.style.display = "none";
+     modal.style.display = "block";
+     dialogMessage.innerText = message;
+
+     if(useIndicator) {
+      loader.style.display = "block";
+     }
+
+     if(yesText != "") {
+      yesButton.innerText = yesText;
+      yesButton.style.visibility = "visible";
+      yesButton.onclick = function() {
+         if(yesFunc != null) {
+           yesFunc();
+         }
+         closeDialog(false);
+       }
+     }
+
+     if(noText != "") {
+       noButton.innerText = noText;
+       noButton.style.visibility = "visible";
+       noButton.onclick = function() {
+         if(noFunc != null) {
+           noFunc();
+         }
+         closeDialog(true);
+       }
+     }
+   }
+
+   var dialogTimer = null;
+   var dialogCancelled = null;
+   function closeDialog(useCallback) {
+    console.log("closeDialog");
+    modal.style.display = "none";
+      if(dialogTimer != null) {
+        window.clearTimeout(dialogTimer);
+        dialogTimer = null;
+        console.log("clearTimeout");
+      }
+
+      if(useCallback && dialogCancelled != null) {
+        dialogCancelled();
+        dialogCancelled = null;
+      }
+   }
+
+function clearTimer() {
+  if (dialogTimer != null) {
+    window.clearTimeout(dialogTimer);
+    dialogTimer = null;
+    console.log("clearTimeout");
+  }
+}
+
 
   const SCREEN_MODE_VIDEO_SHARE = 0;
   const SCREEN_MODE_SCREEN_SHARE = 1;
@@ -972,9 +1050,63 @@ var myName = new Vue({
   var leftToolbar = new Vue({
     el: '#leftToolbar',
     data: {
-      screenMode: SCREEN_MODE_VIDEO_SHARE
+      screenMode: SCREEN_MODE_VIDEO_SHARE,
+
+      name: 'GUEST ' + uuid,
+      presenterName: "",
+      presenterUUID: "",
     },
     methods: {
+      presenterButton: function() {
+        if(this.presenterUUID === "") {
+          // 현재 발표자 권한을 가진 사람이 없는 경우.
+          console.log("ahahdfsa");
+          socket.emit("onEventRequestPresenterPermission", {name: this.name, uuid: uuid, comment: "request permission to server", action: "request"}, (response) => {
+            toast("발표자 권한을 얻었습니다.");
+          });
+        }
+        else if(this.presenterUUID == uuid) {
+          socket.emit("onEventRevokePresenterPermission", {name: this.name, uuid: uuid}, (response) => {
+            toast("더 이상 발표자가 아닙니다.");
+          });
+        }
+        else if(this.presenterUUID != uuid) {
+          // 자신이 발표자가 아닌 경우에는 발표자 권한을 요청한다.
+          let presenterName = this.presenterName;
+          let presenterUUID = this.presenterUUID;
+          let name = this.name;
+          showDialog(presenterName + "님에게 발표자 권한을 요청할까요?", "요청", "취소", function() {
+              socket.emit("onEventRequestPresenterPermission", {name: name, uuid: uuid, comment: "request permission to " + presenterName, action: "request"}, (response) => {
+              console.log("response : " + response);
+                if (response == SUCCESS) {
+                  var count = 9;
+                  clearTimer();
+                  dialogTimer = window.setInterval(function () {
+                    dialogMessage.innerText = presenterName + "님에게 발표자 권한을 요청중입니다. (" + count + ")";
+                    if (count == 0) {
+                      closeDialog(true);
+                    }
+
+                    --count;
+                    console.log("count : " + count);
+                  }, 1000);
+
+                  // 거절 이벤트 처리
+                  dialogCancelled = function() {
+                    socket.emit("onEventPresenterDialogCallback", {value: false, from: uuid, to: presenterUUID});
+                  }
+                  
+                  showDialog(presenterName + "님에게 발표자 권한을 요청중입니다. (10)", "", "취소", null, null, true);
+                } else {
+                  toast(presenterName + "님이 다른 요청 진행중에 있습니다.");
+                }
+
+              });
+        
+           
+          },);
+        }
+      },
       setScreenMode: function(mode) {
         curScreenMode = mode;
         this.screenMode = mode;
@@ -987,8 +1119,6 @@ var myName = new Vue({
   const DRAWING_MODE_ERASER = 2;
 
   var drawingMode = DRAWING_MODE_SHAPE;
-
-
   var drawingLeftToolbar = new Vue({
     el: '#drawingLeftToolbar',
     data: {
@@ -999,8 +1129,11 @@ var myName = new Vue({
       stamp_path: "assets/image/kotlin.png",
       recent_shape: 0,
       drawing_mode: 0,
+
+
     },
     methods: {
+    
       setEraserMode: function() {
         this.drawing_mode = DRAWING_MODE_ERASER;
         drawingMode = DRAWING_MODE_ERASER;
@@ -1018,28 +1151,21 @@ var myName = new Vue({
 
         if(idx == 0) {
           this.stamp_path = "assets/image/kotlin.png";
-        //  canvas.style.cursor = "url(assets/image/kotlin.png) 0 50, auto";
         } else if (idx == 1) {
           this.stamp_path = "assets/image/java.png";
-         // canvas.style.cursor = "url(assets/image/java.png) 0 50, auto";
         } else if (idx == 2) {
           this.stamp_path = "assets/image/js.png";
-        //  canvas.style.cursor = "url(assets/image/js.png) 0 50, auto";
         } else if (idx == 3) {
           this.stamp_path = "assets/image/python.png";
-        //  canvas.style.cursor = "url(assets/image/python.png) 0 50, auto";
         } else if (idx == 4) {
           this.stamp_path = "assets/image/android.png";
-       //   canvas.style.cursor = "url(assets/image/android.png) 0 50, auto";
         } else if (idx == 5) {
           this.stamp_path = "assets/image/ios.png";
-        //  canvas.style.cursor = "url(assets/image/ios.png) 0 50, auto";
         } else if (idx == 6) {
           this.stamp_path = "assets/image/androidstudio.png";
           canvas.style.cursor = "url(assets/image/androidstudio.png) 0 50, auto";
         } else if (idx == 7) {
           this.stamp_path = "assets/image/xcode.png";
-       //   canvas.style.cursor = "url(assets/image/xcode.png) 0 50, auto";
         }
 
         console.log("curShape : " + curShape);

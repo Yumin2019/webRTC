@@ -6050,7 +6050,7 @@ fieldset:disabled .btn {
     min-height: calc(100% - var(--bs-modal-margin) * 2)
 }
 
-.modal-content {
+/* .modal-content {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -6062,7 +6062,7 @@ fieldset:disabled .btn {
     border: var(--bs-modal-border-width) solid var(--bs-modal-border-color);
     border-radius: var(--bs-modal-border-radius);
     outline: 0
-}
+} */
 
 .modal-backdrop {
     --bs-backdrop-zindex: 1050;
